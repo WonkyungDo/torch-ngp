@@ -48,7 +48,6 @@ if __name__ == '__main__':
     parser.add_argument('--min_near', type=float, default=0.2, help="minimum near distance for camera")
     parser.add_argument('--density_thresh', type=float, default=10, help="threshold for density grid to be occupied")
     parser.add_argument('--bg_radius', type=float, default=-1, help="if positive, use a background model at sphere(bg_radius)")
-    parser.add_argument('--patch_size', type=int, default=1, help="[experimental] render patches in training, so as to apply LPIPS loss. 1 means disabled, use [64, 32, 16] to enable")
 
     ### GUI options
     parser.add_argument('--gui', action='store_true', help="start a GUI")
@@ -69,11 +68,6 @@ if __name__ == '__main__':
         opt.fp16 = True
         opt.cuda_ray = True
         opt.preload = True    
-
-    if opt.patch_size > 1:
-        opt.error_map = False # do not use error_map if use patch-based training
-        # assert opt.patch_size > 16, "patch_size should > 16 to run LPIPS loss."
-        assert opt.num_rays % (opt.patch_size ** 2) == 0, "patch_size ** 2 should be dividable by num_rays."
 
     print(opt)
     seed_everything(opt.seed)
@@ -169,8 +163,8 @@ if __name__ == '__main__':
                 trainer.test(test_loader, save_path=os.path.join(opt.workspace, 'compose'))
             elif test_loader.has_gt:
                 trainer.evaluate(test_loader) # blender has gt, so evaluate it.
-            
-            trainer.test(test_loader, write_video=True)
+            else:
+                trainer.test(test_loader) # colmap doesn't have gt, so just test.
 
             #trainer.save_mesh(resolution=256, threshold=0.1)
     
@@ -223,6 +217,6 @@ if __name__ == '__main__':
 
                 if test_loader.has_gt:
                     trainer.evaluate(test_loader, name=name) # blender has gt, so evaluate it.
-                
-                trainer.test(test_loader, name=name) # test and save video
+                else:
+                    trainer.test(test_loader, name=name) # colmap doesn't have gt, so just test.
 

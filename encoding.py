@@ -52,9 +52,7 @@ def get_encoder(encoding, input_dim=3,
         return lambda x, **kwargs: x, input_dim
     
     elif encoding == 'frequency':
-        #encoder = FreqEncoder(input_dim=input_dim, max_freq_log2=multires-1, N_freqs=multires, log_sampling=True)
-        from freqencoder import FreqEncoder
-        encoder = FreqEncoder(input_dim=input_dim, degree=multires)
+        encoder = FreqEncoder(input_dim=input_dim, max_freq_log2=multires-1, N_freqs=multires, log_sampling=True)
 
     elif encoding == 'sphere_harmonics':
         from shencoder import SHEncoder

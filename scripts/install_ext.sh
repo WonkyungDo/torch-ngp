@@ -1,10 +1,15 @@
-pip install ./raymarching
+cd raymarching
+pip install .
+cd ..
 
-pip install ./gridencoder
+cd gridencoder
+pip install .
+cd ..
 
-pip install ./shencoder
+cd shencoder
+pip install .
+cd .. 
 
-pip install ./freqencoder
-
-# turned off by default, very slow to compile, and performance is not good enough.
-#pip install ./ffmlp
+cd ffmlp
+pip install .
+cd ..

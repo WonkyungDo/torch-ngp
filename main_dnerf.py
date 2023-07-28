@@ -31,12 +31,9 @@ if __name__ == '__main__':
     parser.add_argument('--num_steps', type=int, default=128, help="num steps sampled per ray (only valid when NOT using --cuda_ray)")
     parser.add_argument('--upsample_steps', type=int, default=0, help="num steps up-sampled per ray (only valid when NOT using --cuda_ray)")
     parser.add_argument('--max_ray_batch', type=int, default=4096, help="batch size of rays at inference to avoid OOM (only valid when NOT using --cuda_ray)")
-    parser.add_argument('--patch_size', type=int, default=1, help="[experimental] render patches in training, so as to apply LPIPS loss. 1 means disabled, use [64, 32, 16] to enable")
 
     ### network backbone options
     parser.add_argument('--fp16', action='store_true', help="use amp mixed precision training")
-    parser.add_argument('--basis', action='store_true', help="[experimental] use temporal basis instead of deformation to model dynamic scene (check Fourier PlenOctree and NeuVV)")
-    parser.add_argument('--hyper', action='store_true', help="[experimental] use hyper-nerf like ambient dim instead of deformation to model dynamic scene")
     # parser.add_argument('--ff', action='store_true', help="use fully-fused MLP")
     # parser.add_argument('--tcnn', action='store_true', help="use TCNN backend")
 
@@ -72,18 +69,7 @@ if __name__ == '__main__':
         opt.cuda_ray = True
         opt.preload = True
 
-    if opt.patch_size > 1:
-        opt.error_map = False # do not use error_map if use patch-based training
-        # assert opt.patch_size > 16, "patch_size should > 16 to run LPIPS loss."
-        assert opt.num_rays % (opt.patch_size ** 2) == 0, "patch_size ** 2 should be dividable by num_rays."
-
-    if opt.basis:
-        assert opt.cuda_ray, "Non-cuda-ray mode is temporarily broken with temporal basis mode"
-        from dnerf.network_basis import NeRFNetwork
-    elif opt.hyper:
-        from dnerf.network_hyper import NeRFNetwork
-    else:
-        from dnerf.network import NeRFNetwork
+    from dnerf.network import NeRFNetwork
 
     print(opt)
     
@@ -119,8 +105,8 @@ if __name__ == '__main__':
 
             if test_loader.has_gt:
                 trainer.evaluate(test_loader) # blender has gt, so evaluate it.
-            
-            trainer.test(test_loader, write_video=True) # test and save video
+            else:
+                trainer.test(test_loader) # colmap doesn't have gt, so just test.
             
             #trainer.save_mesh(resolution=256, threshold=10)
     
@@ -150,7 +136,7 @@ if __name__ == '__main__':
             
             if test_loader.has_gt:
                 trainer.evaluate(test_loader) # blender has gt, so evaluate it.
-            
-            trainer.test(test_loader, write_video=True) # test and save video
+            else:
+                trainer.test(test_loader) # colmap doesn't have gt, so just test.
             
             #trainer.save_mesh(resolution=256, threshold=10)
